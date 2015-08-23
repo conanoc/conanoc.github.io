@@ -1,7 +1,7 @@
 <html lang=ko>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <link rel="stylesheet" type="text/css" href="book.css">
 
 </head>
@@ -28,15 +28,19 @@
 <p>과학에 있어서 믿음의 필요성에 대해 이야기한 것은 순전한 인과성의 세상이나 확률이 지배하는 세상에도 똑같이 적용된다. 아무리 많은 순수하게 객관적이고 독립적인 관측들로도 확률이 타당한 개념이라는 것을 증명하진 못한다. 같은 문장을 다르게 표현해보면, 논리학의 귀납법은 귀납적으로 성립될 수 없다. 베이컨의 논리학인 귀납 논리학은 우리가 증명할 수 있는 것이라기 보다는 우리가 그것에 기반해 행동할 수 있는 것이고, 그것에 기반해 행동할 수 있다는 것은 믿음의 확실한 보증이다. 이런 맥락에서 신의 솔직함에 대한 아인슈타인의 격언은 그 자체로 믿음에 관한 진술이라는 것을 말하고 싶다. 과학은 사람이 믿음을 가질 자유가 있을때만 번성할 수 있는 삶의 한가지 방식이다. 외부에서 부과된 명령에 따른 믿음은 믿음이 아니며, 그러한 가짜 믿음에 의존하는 공동체는 건강하게 성장하는 과학의 결핍이 불러오는 마비로 인해 궁긍적으로는 스스로를 파멸시키게 되어있다.</p>
 </div>
 <div id=header>
+<span class=btn-left onclick="toc()">목차</span>
 The Human Use of Human Beings<br>
 11장. 언어, 혼동, 방해
 </div>
-<div id=footer>
-<span class=btn-right onclick="nextPage()">다음</span>
-<span class=btn-left onclick="prevPage()">이전</span>
-</div>
 
 <script src="book.js"></script>
+<div id=footer>
+<span class=btn-left onclick="prevPage()">이전</span>
+<span id='pg-count'>-</span>
+<span class=btn-right onclick="nextPage()">다음</span>
+<script>setPageCount();</script>
+</div>
+
 
 </body>
 </html>
