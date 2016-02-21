@@ -2,8 +2,8 @@ var currentIndex = 0;
 
 var content = document.getElementById('content');
 var columnGap = 20;
-var contentMargins = 4*8;
-var pageWidth = window.innerWidth - contentMargins;
+var contentMargins = 2*16;
+var pageWidth = document.body.clientWidth - contentMargins;
 var maxIndex = 0;
 var filename = location.href.substring(location.href.lastIndexOf('/')+1, location.href.lastIndexOf('.'));
 if(content != null)
