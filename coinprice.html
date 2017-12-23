@@ -1,0 +1,119 @@
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoCurrency Price Index</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css">
+    <script type="text/javascript">
+    	let venders = ["bithumb", "coinmarketcap"];
+    	let currencys = ["btc", "bch", "btg", "eth", "xrp"];
+      function computePrimium() {
+        for (currency of currencys) {
+          let foreign = document.getElementById(currency + "-coinmarketcap").getAttribute("value");
+          let korean = document.getElementById(currency + "-bithumb").getAttribute("value");
+          let primium = 100 * (korean - foreign) / foreign;
+          document.getElementById(currency+"-primium").innerHTML 
+            = Number(primium).toFixed(2) + "%";
+        }
+      }
+    	function setBithumbPrice(currency, json) {
+        var item = json.data[currency.toUpperCase()];
+        document.getElementById(currency+"-bithumb").setAttribute("value", item.closing_price);
+    		document.getElementById(currency+"-bithumb").innerHTML 
+    			= Number(item.closing_price).toLocaleString();
+        document.getElementById(currency+"-change-bithumb").innerHTML 
+          = Number(100*(item.closing_price - item.opening_price)/item.opening_price).toFixed(2) + "%";
+
+        if (item.closing_price > item.opening_price) {
+          document.getElementById(currency+"-change-bithumb").style.color = "red";
+          document.getElementById(currency+"-change-bithumb").innerHTML += " <img src=http://static.naver.net/nfinance/ico_up.gif style='vertical-align:middle'>";
+        } else {
+          document.getElementById(currency+"-change-bithumb").style.color = "blue";
+          document.getElementById(currency+"-change-bithumb").innerHTML += " <img src=http://static.naver.net/nfinance/ico_down.gif style='vertical-align:middle'>";
+        }
+    	}
+    	function fetchBithumb() {
+    		return fetch("https://api.bithumb.com/public/ticker/all").then(function(response) {
+    			return response.json();
+    		}).then(function(json) {
+          for (currency of currencys)
+      			setBithumbPrice(currency, json);
+    		});
+      }
+      function fetchKorbit() {
+        //korbit API is only available on server side. not supporting CORS.
+        for (currency of currencys) {
+          fetch("https://api.korbit.co.kr/v1/ticker?currency_pair="+currency+"_krw").then(function(response) {
+            return response.json();
+          }).then(function(json) {
+            document.getElementById(currency+"-korbit").innerHTML 
+              = Number(json.last).toLocaleString();
+          });
+        }
+    	}
+      function fetchCoinmarket() {
+        return fetch("https://api.coinmarketcap.com/v1/ticker/?convert=krw&limit=20").then(function(response) {
+          return response.json();
+        }).then(function(json) {
+          for (item of json) {
+            var currency = item.symbol.toLowerCase();
+            if (currencys.includes(currency)) {
+              document.getElementById(currency + "-coinmarketcap").setAttribute("value", item.price_krw);
+              document.getElementById(currency + "-coinmarketcap").innerHTML 
+                = Number(Number(item.price_krw).toFixed()).toLocaleString();
+              document.getElementById(currency + "-change-coinmarketcap").innerHTML 
+                = Number(item.percent_change_24h).toFixed(2) + "%";
+
+              if (item.percent_change_24h > 0) {
+                document.getElementById(currency +"-change-coinmarketcap").style.color = "red";
+                document.getElementById(currency+"-change-coinmarketcap").innerHTML += " <img src=http://static.naver.net/nfinance/ico_up.gif style='vertical-align:middle'>";
+              } else {
+                document.getElementById(currency +"-change-coinmarketcap").style.color = "blue";
+                document.getElementById(currency+"-change-coinmarketcap").innerHTML += " <img src=http://static.naver.net/nfinance/ico_down.gif style='vertical-align:middle'>";
+              }
+            }
+          }
+        });
+      }
+    	function writeTable() {
+    		for (vender of venders) {
+    			document.getElementById("currency-header").innerHTML += "<th>" + vender + "(원)</th>";
+          document.getElementById("currency-header").innerHTML += "<th>24H</th>";
+    		}
+        document.getElementById("currency-header").innerHTML += "<th>김프</th>";
+
+  			var tbody = "";
+  			for (currency of currencys) {
+     			tbody += "<tr>"	+ "<td>" + currency.toUpperCase() + "</td>";
+  				for (vender of venders) {
+  					tbody += "<td id=" + currency + "-" + vender + " align=right>0</td>";
+            tbody += "<td id=" + currency + "-change-" + vender + " align=right>0</td>";
+  				}
+          tbody += "<td id=" + currency + "-primium" + " align=right>0</td>";
+  				tbody += "</tr>";
+  			}
+  			document.getElementById("currency-tbody").innerHTML = tbody;
+    	}
+    	function loadPage() {
+    		writeTable();
+    		var bithumb = fetchBithumb();
+        var coinmarketcap = fetchCoinmarket();
+        Promise.all([bithumb, coinmarketcap]).then(values => {
+          computePrimium();
+        });
+    	}
+    </script>
+</head>
+<body onload="loadPage()">
+	<table class="pure-table" align="center">
+    <thead>
+        <tr id="currency-header">
+            <th>Currency</th>
+        </tr>
+    </thead>
+    <tbody id="currency-tbody">
+        <!--tr>
+            <td>BTC</td>
+            <td id="btc-bithumb" align=right>0</td>
+        </tr-->
+    </tbody>
+</body>
