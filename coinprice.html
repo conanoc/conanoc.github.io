@@ -1,171 +1,67 @@
 <head>
-	<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Price</title>
-    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css">
-    <style type="text/css">
-      table {
-        font-size: small;
-      }
-    </style>
-    <script type="text/javascript">
-    	let venders = ["bithumb", "korbit", "coinone"];  // local venders
-    	let currencys = ["btc", "bch", "btg", "eth", "xrp"];
-      var ticker = {
-        bithumb: {},
-        korbit: {},
-        coinone: {},
-        coinmarket: {}
-      };
-      function computePrimium() {
-        for (currency of currencys) {
-          let foreign = ticker["coinmarket"][currency];
-          var korean = 0.0;
-          for (vender of venders) {
-            korean += Number(ticker[vender][currency]);
-          }
-          korean /= venders.length;
-          let primium = 100 * (korean - foreign) / foreign;
-          document.getElementById(currency+"-average").innerHTML 
-            = Number(Number(korean).toFixed(0)).toLocaleString();
-          document.getElementById(currency+"-primium").innerHTML 
-            = Number(primium).toFixed(2) + "%";
-        }
-      }
-    	function setBithumbPrice(currency, json) {
-        var item = json.data[currency.toUpperCase()];
-        ticker["bithumb"][currency] = item.closing_price;
-    		document.getElementById(currency+"-bithumb").innerHTML 
-    			= Number(item.closing_price).toLocaleString();
-        document.getElementById(currency+"-change-bithumb").innerHTML 
-          = Number(100*(item.closing_price - item.opening_price)/item.opening_price).toFixed(2) + "%";
-
-        if (item.closing_price > item.opening_price) {
-          document.getElementById(currency+"-change-bithumb").style.color = "red";
-          document.getElementById(currency+"-change-bithumb").innerHTML += " <img src=http://static.naver.net/nfinance/ico_up.gif style='vertical-align:middle'>";
-        } else {
-          document.getElementById(currency+"-change-bithumb").style.color = "blue";
-          document.getElementById(currency+"-change-bithumb").innerHTML += " <img src=http://static.naver.net/nfinance/ico_down.gif style='vertical-align:middle'>";
-        }
-    	}
-    	function fetchBithumb() {
-    		return fetch("https://api.bithumb.com/public/ticker/all").then(function(response) {
-    			return response.json();
-    		}).then(function(json) {
-          for (currency of currencys)
-      			setBithumbPrice(currency, json);
-    		});
-      }
-      function fetchKorbit() {
-        return fetch("https://us-central1-coinprice-189909.cloudfunctions.net/korbit").then(function(response) {
-          return response.json();
-        }).then(function(json) {
-          for (currency of currencys) {
-            ticker["korbit"][currency] = json[currency].last;
-            document.getElementById(currency+"-korbit").innerHTML 
-              = Number(json[currency].last).toLocaleString();            
-          }
-        });
-    	}
-      function fetchCoinone() {
-        return fetch("https://us-central1-coinprice-189909.cloudfunctions.net/coinone").then(function(response) {
-          return response.json();
-        }).then(function(json) {
-          for (currency of currencys) {
-            ticker["coinone"][currency] = json[currency].last;
-            document.getElementById(currency+"-coinone").innerHTML 
-              = Number(json[currency].last).toLocaleString();            
-          }
-        });
-      }
-      function fetchCoinmarket() {
-        return fetch("https://api.coinmarketcap.com/v1/ticker/?convert=krw&limit=20").then(function(response) {
-          return response.json();
-        }).then(function(json) {
-          for (item of json) {
-            var currency = item.symbol.toLowerCase();
-            if (currencys.includes(currency)) {
-              ticker["coinmarket"][currency] = item.price_krw;
-              document.getElementById(currency + "-coinmarket").innerHTML 
-                = Number(Number(item.price_krw).toFixed()).toLocaleString();
-              document.getElementById(currency + "-change-coinmarket").innerHTML 
-                = Number(item.percent_change_24h).toFixed(2) + "%";
-
-              if (item.percent_change_24h > 0) {
-                document.getElementById(currency +"-change-coinmarket").style.color = "red";
-                document.getElementById(currency+"-change-coinmarket").innerHTML += " <img src=http://static.naver.net/nfinance/ico_up.gif style='vertical-align:middle'>";
-              } else {
-                document.getElementById(currency +"-change-coinmarket").style.color = "blue";
-                document.getElementById(currency+"-change-coinmarket").innerHTML += " <img src=http://static.naver.net/nfinance/ico_down.gif style='vertical-align:middle'>";
-              }
-            }
-          }
-        });
-      }
-      function getTableBody(venders) {
-        var tbody = "";
-        for (currency of currencys) {
-          tbody += "<tr>" + "<td>" + currency.toUpperCase() + "</td>";
-          for (vender of venders) {
-            tbody += "<td id=" + currency + "-" + vender + " align=right>0</td>";
-            tbody += "<td id=" + currency + "-change-" + vender + " align=right>-</td>";
-            if (vender == "coinmarket") {
-              tbody += "<td id=" + currency + "-average" + " align=right>0</td>";
-              tbody += "<td id=" + currency + "-primium" + " align=right>0</td>";
-            }
-          }
-          tbody += "</tr>";
-        }
-        return tbody;
-      }
-    	function writeTable() {
-        for (vender of venders) {
-    			document.getElementById("currency-header-1").innerHTML += "<th>" + vender + "</th>";
-          document.getElementById("currency-header-1").innerHTML += "<th>24H</th>";
-        }
-        document.getElementById("currency-header-2").innerHTML += "<th>" + "coinmarket" + "</th>";
-        document.getElementById("currency-header-2").innerHTML += "<th>24H</th>";
-        document.getElementById("currency-header-2").innerHTML += "<th>국내평균</th>";
-        document.getElementById("currency-header-2").innerHTML += "<th>김프</th>";
-
-  			document.getElementById("currency-tbody-1").innerHTML = getTableBody(venders);
-        document.getElementById("currency-tbody-2").innerHTML = getTableBody(["coinmarket"]);
-    	}
-    	function loadPage() {
-    		writeTable();
-    		var bithumb = fetchBithumb();
-        var korbit = fetchKorbit();
-        var coinone = fetchCoinone();
-        var coinmarketcap = fetchCoinmarket();
-        Promise.all([bithumb, coinone, korbit, coinmarketcap]).then(function() {
-          computePrimium();
-        });
-    	}
-    </script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Price</title>
+<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css">
+<style type="text/css">
+  table, li {
+    font-size: small;
+  }
+  th {
+    text-align: center;
+  }
+  body {
+    margin-left: 8px;
+  }
+</style>
+<script src="minify.js"></script>
 </head>
 <body onload="loadPage()">
-  <br/>
-	<table id="left-table" class="pure-table">
+  <h3>국내 거래소</h3>
+	<table class="pure-table">
     <thead>
-        <tr id="currency-header-1">
+        <tr id="currency-header-local">
             <th>Currency</th>
         </tr>
     </thead>
-    <tbody id="currency-tbody-1">
+    <tbody id="currency-tbody-local">
         <!--tr>
             <td>BTC</td>
             <td id="btc-bithumb" align=right>0</td>
         </tr-->
     </tbody>
   </table>
-  <table id="right-table" class="pure-table">
+  <ul>
+    <li>가격 단위는 원(KRW) 입니다.</li>
+    <li>24 시간 변동폭은 Bithumb 기준입니다.</li>
+  </ul>
+
+  <h3>국내 거래소 레버리지</h3>
+  <table class="pure-table">
     <thead>
-        <tr id="currency-header-2">
+        <tr id="currency-header-leverage">
             <th>Currency</th>
         </tr>
     </thead>
-    <tbody id="currency-tbody-2">
+    <tbody id="currency-tbody-leverage">
     </tbody>
   </table>
+  <ul>
+    <li>레버리지는 거래소간 가격 차이를 나타냅니다.</li>
+    <li>Bitcoin Gold는 대부분 거래소에서 아직 Coin 이체를 지원하지 않으므로 레버리지 활용이 불가합니다.</li>
+  </ul>
 
+  <h3>Global 가격 비교</h3>
+  <table class="pure-table">
+    <thead>
+        <tr id="currency-header-primium">
+            <th>Currency</th>
+        </tr>
+    </thead>
+    <tbody id="currency-tbody-primium">
+    </tbody>
+  </table>
+  <ul>
+    <li>Global 가격은 <a href="https://coinmarketcap.com/" target=_>coinmarketcap.com</a>을 기준으로 합니다.</li>
+  </ul>
 </body>
