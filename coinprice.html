@@ -1,7 +1,15 @@
 <head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-141741-13"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-141741-13');
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coin Price</title>
+<title>Coin Leverage</title>
 <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css">
 <style type="text/css">
   table, li {
@@ -61,4 +69,11 @@
     <tbody id="currency-tbody-primium">
     </tbody>
   </table>
+  <ul>
+    <li id="binance-leverage">binance 레버리지(BTG 제외): </li>
+    <li>김프1 = (bithumb - coinmarket) / coinmarket</li>
+    <li>김프2 = (bithumb - binance) / binance</li>
+    <li><a target=_ href="https://coinmarketcap.com">coinmarket</a>에는 국내 거래소의 가격이 반영되어 있어 국내 비중이 높은 XRP의 Primium 수치가 낮게 계산됩니다.</li>
+    <li><a target=_ href="https://www.binance.com">binance</a> 가격 계산시 1 USD = 1100 원으로 고정되어 있습니다. coinmarket은 KRW가격을 제공합니다.</li>
+  </ul>
 </body>
