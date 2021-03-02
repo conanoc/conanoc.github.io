@@ -13,11 +13,6 @@ var homepage = {
   korbit: "https://www.korbit.co.kr",
   coinone: "https://coinone.co.kr"
 }
-var reqOptions = {
-  headers: {
-    "Accept-Encoding": "gzip,deflate"    
-  }
-}
 var krwPerUsd = 1000;
 function computePrimium() {
   ticker.binance.btc *= krwPerUsd; 
@@ -96,7 +91,7 @@ function setBithumbPrice(currency, json) {
   }
 }
 function fetchUsdRate() {
-  return fetch("https://api.manana.kr/exchange/rate/KRW/USD.json", reqOptions).then(function(response) {
+  return fetch("https://api.manana.kr/exchange/rate/KRW/USD.json").then(function(response) {
     return response.json();
   }).then(function(json) {
     krwPerUsd = json[0]["rate"];
@@ -104,7 +99,7 @@ function fetchUsdRate() {
   });  
 }
 function fetchBithumb() {
-  return fetch("https://api.bithumb.com/public/ticker/all", reqOptions).then(function(response) {
+  return fetch("https://api.bithumb.com/public/ticker/all").then(function(response) {
     return response.json();
   }).then(function(json) {
     for (currency of currencys)
@@ -112,7 +107,7 @@ function fetchBithumb() {
   });
 }
 function fetchKorbit() {
-  return fetch("https://conanoc-eval-prod.apigee.net/korbit", reqOptions).then(function(response) {
+  return fetch("https://conanoc-eval-prod.apigee.net/korbit").then(function(response) {
     return response.json();
   }).then(function(json) {
     for (currency of currencys) {
@@ -125,7 +120,7 @@ function fetchKorbit() {
   });
 }
 function fetchCoinone() {
-  return fetch("https://conanoc-eval-prod.apigee.net/coinone", reqOptions).then(function(response) {
+  return fetch("https://conanoc-eval-prod.apigee.net/coinone").then(function(response) {
     return response.json();
   }).then(function(json) {
     for (currency of currencys) {
@@ -138,7 +133,7 @@ function fetchCoinone() {
   });
 }
 function fetchCoinmarket() {
-  return fetch("https://conanoc-eval-prod.apigee.net/coinmarket", reqOptions).then(function(response) {
+  return fetch("https://us-central1-coinprice-189909.cloudfunctions.net/coinmarket").then(function(response) {
     return response.json();
   }).then(function(json) {
     for (item of json.data) {
@@ -162,7 +157,7 @@ function fetchCoinmarket() {
   });
 }
 function fetchBinance() {
-  return fetch("https://conanoc-eval-prod.apigee.net/binance", reqOptions).then(function(response) {
+  return fetch("https://conanoc-eval-prod.apigee.net/binance").then(function(response) {
     return response.json();
   }).then(function(json) {
     var count = 0;
