@@ -1,5 +1,5 @@
 var venders = ["bithumb", "korbit", "coinone"];  // local venders
-var currencys = ["btc", "eth", "xrp", "eos", "ltc"];
+var currencys = ["btc", "eth", "xrp", "eos", "ltc", "luna", "doge", "bat"];
 var ticker = {
   bithumb: {},
   korbit: {},
@@ -14,8 +14,26 @@ var homepage = {
   coinone: "https://coinone.co.kr"
 }
 var krwPerUsd = 1000;
+function binanceSymbols() {
+  var symbols = "symbols=["
+  for (currency of currencys) {
+    var symbol = currency.toUpperCase() + "USDT";
+    symbols += '"' + symbol + '",';
+  }
+  symbols = symbols.substring(0, symbols.length - 1);
+  symbols += "]";
+  return symbols;
+}
+function coinmarketSymbols() {
+  var symbols = "symbol="
+  for (currency of currencys) {
+    var symbol = currency.toUpperCase();
+    symbols += symbol + ',';
+  }
+  symbols = symbols.substring(0, symbols.length - 1);
+  return symbols;
+}
 function computePrimium() {
-  ticker.binance.btc *= krwPerUsd; 
   for (currency of currencys) {
     var foreign = ticker["coinmarket"][currency];
     var korean = ticker.bithumb[currency];
@@ -25,8 +43,7 @@ function computePrimium() {
     document.getElementById(currency+"-primium").innerHTML 
       = Number(primium).toFixed(2) + "%";
 
-    if (currency != "btc")
-      ticker.binance[currency] *= ticker.binance.btc;
+    ticker["binance"][currency] *= krwPerUsd;
     var binance = ticker["binance"][currency];
     var diff = 100 * (korean - binance) / binance;
     document.getElementById(currency+"-binance").innerHTML 
@@ -74,15 +91,15 @@ function computeArbitrage() {
   var min = diffList[0];
   document.getElementById("binance-arbitrage").innerHTML = "binance arbitrage: " + max.currency.toUpperCase() + " - " + min.currency.toUpperCase() + " = " + Number(max.diff - min.diff).toFixed(2) + " %";
 }
-function setBithumbPrice(currency, json) {
-  var item = json.data[currency.toUpperCase()];
-  ticker["bithumb"][currency] = Number(item.closing_price);
+function setBithumbPrice(item) {
+  var currency = item.currency
+  ticker["bithumb"][currency] = Number(item.data.closing_price);
   document.getElementById(currency+"-bithumb").innerHTML 
-    = Number(item.closing_price).toLocaleString();
+    = Number(item.data.closing_price).toLocaleString();
   document.getElementById(currency+"-change-bithumb").innerHTML 
-    = Number(100*(item.closing_price - item.opening_price)/item.opening_price).toFixed(2) + "%";
+    = Number(100*(item.data.closing_price - item.data.opening_price)/item.data.opening_price).toFixed(2) + "%";
 
-  if (Number(item.closing_price) > Number(item.opening_price)) {
+  if (Number(item.data.closing_price) > Number(item.data.opening_price)) {
     document.getElementById(currency+"-change-bithumb").style.color = "red";
     document.getElementById(currency+"-change-bithumb").innerHTML += ' <i class="fas fa-caret-up"></i>';
   } else {
@@ -98,45 +115,62 @@ function fetchUsdRate() {
     document.getElementById("krw_usd").innerHTML = Number(krwPerUsd).toLocaleString();
   });  
 }
-function fetchBithumb() {
-  return fetch("https://api.bithumb.com/public/ticker/all").then(function(response) {
+function getBithumbTicker(currency) {
+  return fetch("https://api.bithumb.com/public/ticker/" + currency + "_krw").then(function(response) {
     return response.json();
   }).then(function(json) {
-    for (currency of currencys)
-      setBithumbPrice(currency, json);
+    json.currency = currency;
+    return json;
   });
 }
-function fetchKorbit() {
-  return fetch("https://conanoc-eval-prod.apigee.net/korbit").then(function(response) {
-    return response.json();
-  }).then(function(json) {
-    for (currency of currencys) {
-      if (json[currency] === undefined)
-        continue;
-      ticker["korbit"][currency] = Number(json[currency].last);
-      document.getElementById(currency+"-korbit").innerHTML 
-        = Number(json[currency].last).toLocaleString();            
+function fetchBithumb() {
+  Promise.all(currencys.map(getBithumbTicker)).then(function(json) {
+    for (item of json) {
+      setBithumbPrice(item);
     }
   });
 }
-function fetchCoinone() {
-  return fetch("https://conanoc-eval-prod.apigee.net/coinone").then(function(response) {
+function getKorbitTicker(currency) {
+  return fetch("https://api.korbit.co.kr/v1/ticker?currency_pair="+currency+"_krw").then(function(response) {
     return response.json();
   }).then(function(json) {
-    for (currency of currencys) {
-      if (json[currency] === undefined)
-        continue;
-      ticker["coinone"][currency] = Number(json[currency].last);
+    json.currency = currency;
+    return json;
+  });
+}
+function fetchKorbit() {
+  Promise.all(currencys.map(getKorbitTicker)).then(function(json) {
+    for (item of json) {
+      var currency = item.currency;
+      ticker["korbit"][currency] = Number(item.last);
+      document.getElementById(currency+"-korbit").innerHTML
+        = Number(item.last).toLocaleString();
+    }
+  });
+}
+function getCoinoneTicker(currency) {
+  return fetch("https://api.coinone.co.kr/public/v2/ticker_new/krw/"+currency).then(function(response) {
+    return response.json();
+  }).then(function(json) {
+    json.currency = currency;
+    return json;
+  });
+}
+function fetchCoinone() {
+  Promise.all(currencys.map(getCoinoneTicker)).then(function(json) {
+    for (item of json) {
+      var currency = item.currency;
+      ticker["coinone"][currency] = Number(item.tickers[0].last);
       document.getElementById(currency+"-coinone").innerHTML 
-        = Number(json[currency].last).toLocaleString();            
+        = Number(item.tickers[0].last).toLocaleString();            
     }
   });
 }
 function fetchCoinmarket() {
-  return fetch("https://us-central1-coinprice-189909.cloudfunctions.net/coinmarket").then(function(response) {
+  return fetch("https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?convert=KRW&CMC_PRO_API_KEY=7a6ebd1b-fde3-4f0c-8237-328378a273ea&"+coinmarketSymbols()).then(function(response) {
     return response.json();
   }).then(function(json) {
-    for (item of json.data) {
+    for ([_, item] of Object.entries(json.data)) {
       var currency = item.symbol.toLowerCase();
       if (currencys.includes(currency)) {
         ticker["coinmarket"][currency] = Number(item.quote.KRW.price);
@@ -157,24 +191,13 @@ function fetchCoinmarket() {
   });
 }
 function fetchBinance() {
-  return fetch("https://conanoc-eval-prod.apigee.net/binance").then(function(response) {
+  return fetch("https://api1.binance.com/api/v3/ticker/price?"+binanceSymbols()).then(function(response) {
     return response.json();
   }).then(function(json) {
-    var count = 0;
     for (item of json) {
-      var currency = item.symbol.substring(0, 3).toLowerCase();
-      if (currency == "bcc") {
-        currency = "bch";
-        item.symbol = "BCH" + item.symbol.substring(3);
-      } else if (currency == "das") {
-        currency = "dash";
-      }
-      if (currency == "btc" || (currencys.includes(currency) && item.symbol.toLowerCase() == (currency + "btc"))) {
-        ticker["binance"][currency] = Number(item.price);
-        count++;
-      }
-      if (count == currencys.length)
-        break;
+      var length = item.symbol.length - "USDT".length;
+      var currency = item.symbol.substring(0, length).toLowerCase();
+      ticker["binance"][currency] = Number(item.price);
     }
   });
 }
@@ -228,11 +251,6 @@ function writeTable() {
   document.getElementById("currency-tbody-primium").innerHTML = getTableBody(["coinmarket"]);
 }
 function loadPage() {
-  if (location.protocol == 'http:' && location.host.startsWith("conanoc")) {
-    location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
-    return;
-  }
-
   writeTable();
   var bithumb = fetchBithumb();
   var korbit = fetchKorbit();
