@@ -13,7 +13,11 @@ var homepage = {
   korbit: "https://www.korbit.co.kr",
   coinone: "https://coinone.co.kr"
 }
+var proxyUrl = "https://asia-northeast3-coinprice-189909.cloudfunctions.net/corsproxy"
 var krwPerUsd = 1000;
+function getProxy(url) {
+  return `${proxyUrl}?url=${encodeURIComponent(url)}`
+}
 function binanceSymbols() {
   var symbols = "symbols=["
   for (currency of currencys) {
@@ -108,7 +112,7 @@ function setBithumbPrice(item) {
   }
 }
 function fetchUsdRate() {
-  return fetch("https://api.manana.kr/exchange/rate/KRW/USD.json").then(function(response) {
+  return fetch(getProxy("https://api.manana.kr/exchange/rate/KRW/USD.json")).then(function(response) {
     return response.json();
   }).then(function(json) {
     krwPerUsd = json[0]["rate"];
@@ -116,7 +120,7 @@ function fetchUsdRate() {
   });  
 }
 function getBithumbTicker(currency) {
-  return fetch("https://api.bithumb.com/public/ticker/" + currency + "_krw").then(function(response) {
+  return fetch(getProxy("https://api.bithumb.com/public/ticker/" + currency + "_krw")).then(function(response) {
     return response.json();
   }).then(function(json) {
     json.currency = currency;
@@ -131,7 +135,7 @@ function fetchBithumb() {
   });
 }
 function getKorbitTicker(currency) {
-  return fetch("https://api.korbit.co.kr/v1/ticker?currency_pair="+currency+"_krw").then(function(response) {
+  return fetch(getProxy("https://api.korbit.co.kr/v1/ticker?currency_pair="+currency+"_krw")).then(function(response) {
     return response.json();
   }).then(function(json) {
     json.currency = currency;
@@ -149,7 +153,7 @@ function fetchKorbit() {
   });
 }
 function getCoinoneTicker(currency) {
-  return fetch("https://api.coinone.co.kr/public/v2/ticker_new/krw/"+currency).then(function(response) {
+  return fetch(getProxy("https://api.coinone.co.kr/public/v2/ticker_new/krw/"+currency)).then(function(response) {
     return response.json();
   }).then(function(json) {
     json.currency = currency;
@@ -167,7 +171,7 @@ function fetchCoinone() {
   });
 }
 function fetchCoinmarket() {
-  return fetch("https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?convert=KRW&CMC_PRO_API_KEY=7a6ebd1b-fde3-4f0c-8237-328378a273ea&"+coinmarketSymbols()).then(function(response) {
+  return fetch(getProxy("https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?convert=KRW&CMC_PRO_API_KEY=7a6ebd1b-fde3-4f0c-8237-328378a273ea&"+coinmarketSymbols())).then(function(response) {
     return response.json();
   }).then(function(json) {
     for ([_, item] of Object.entries(json.data)) {
@@ -191,7 +195,7 @@ function fetchCoinmarket() {
   });
 }
 function fetchBinance() {
-  return fetch("https://api1.binance.com/api/v3/ticker/price?"+binanceSymbols()).then(function(response) {
+  return fetch(getProxy("https://api1.binance.com/api/v3/ticker/price?"+binanceSymbols())).then(function(response) {
     return response.json();
   }).then(function(json) {
     for (item of json) {
