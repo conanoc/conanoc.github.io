@@ -262,7 +262,7 @@ function loadPage() {
   var coinmarketcap = fetchCoinmarket();
   var binance = fetchBinance();
   var usd = fetchUsdRate();
-  Promise.all([bithumb, coinone, korbit, coinmarketcap, binance, usd]).then(function() {
+  Promise.allSettled([bithumb, coinone, korbit, coinmarketcap, binance, usd]).then(function() {
     computePrimium();
     computeArbitrage();
   });
