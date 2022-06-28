@@ -1,5 +1,5 @@
 var venders = ["bithumb", "korbit", "coinone"];
-var currencys = ["btc", "eth", "xrp", "eos", "ltc", "bch", "doge", "bat"];
+var currencys = ["btc", "eth", "xrp", "eos", "bch", "doge", "bat"];
 var ticker = {
   bithumb: {},
   korbit: {},
